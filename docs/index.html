@@ -1145,8 +1145,11 @@ function loadWasm() {
           }
         }
       },
-      onRuntimeInitialized: () => {
+      onRuntimeInitialized: function() {
         console.log('[WASM] Runtime initialized');
+        // Capture the actual initialized Emscripten Module (Emscripten may
+        // reassign its local var, so `this` is the only reliable reference)
+        window.SherpaModule = this;
         wasmReady = true;
         resolve();
       },
@@ -1279,7 +1282,8 @@ async function downloadModel() {
   setStatus('statusDownloading', 'statusDownloadingDetail', 0);
 
   try {
-    const fs = window.Module.FS || window.FS;
+    const mod = window.SherpaModule || window.Module;
+    const fs = mod.FS || window.FS;
     const useOpfs = 'storage' in navigator && 'getDirectory' in navigator.storage;
     let totalLoaded = 0;
     const totalSize = MODEL_FILES.reduce((s, f) => s + f.size, 0);
@@ -1347,7 +1351,7 @@ async function downloadModel() {
         modelType:   '',
       },
       decodingMethod: 'greedy_search',
-    }, window.Module);
+    }, mod);
 
     modelReady = true;
     setProgress(100);
