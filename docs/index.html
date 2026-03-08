@@ -1,1618 +1,520 @@
 <!DOCTYPE html>
 <html lang="eu">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parakeet ASR Euskaraz</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
-  <style>
-    :root {
-      --ink-950: #0a0615;
-      --ink-900: #160b2b;
-      --ink-800: #261247;
-      --ink-700: #3a1b66;
-      --violet-950: #1b0d2f;
-      --violet-900: #251146;
-      --violet-800: #34146b;
-      --violet-700: #44208d;
-      --violet-600: #5a2db2;
-      --violet-500: #7c3aed;
-      --violet-400: #9f67ff;
-      --violet-300: #c0a6ff;
-      --violet-200: #e4dbff;
-      --blush-500: #f472b6;
-      --white-5:  rgba(255,255,255,0.05);
-      --white-10: rgba(255,255,255,0.10);
-      --white-15: rgba(255,255,255,0.15);
-      --white-40: rgba(255,255,255,0.40);
-      --white-60: rgba(255,255,255,0.60);
-      --white-70: rgba(255,255,255,0.70);
-      --white-80: rgba(255,255,255,0.80);
-      --white-90: rgba(255,255,255,0.90);
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Parakeet Euskara — Hizketaren ezagutza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:      #0A0615;
+    --surface: rgba(255,255,255,0.04);
+    --border:  rgba(255,255,255,0.08);
+    --violet:  #7C3AED;
+    --violet2: #6D28D9;
+    --blush:   #F472B6;
+    --text:    #F1EFF6;
+    --muted:   #9B97A8;
+    --radius:  14px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Manrope', sans-serif; font-size: 15px; line-height: 1.6;
+    min-height: 100vh; padding: 24px 16px 48px;
+  }
+  h1, h2, h3, button, label { font-family: 'Space Grotesk', sans-serif; }
+  .container { max-width: 720px; margin: 0 auto; }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Header */
+  header { text-align: center; padding: 40px 0 32px; }
+  header h1 { font-size: clamp(1.8rem,5vw,2.6rem); font-weight: 700; letter-spacing: -.5px; }
+  header h1 span { color: var(--violet); }
+  header p { color: var(--muted); margin-top: 8px; font-size: .95rem; }
+  .lang-switcher { display: flex; gap: 6px; justify-content: center; margin-top: 16px; }
+  .lang-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); border-radius: 8px; padding: 4px 12px;
+    cursor: pointer; font-size: .82rem; font-family: 'Space Grotesk',sans-serif;
+    transition: all .2s;
+  }
+  .lang-btn.active, .lang-btn:hover { background: var(--violet); color: #fff; border-color: var(--violet); }
 
-    html {
-      font-family: "Manrope", system-ui, sans-serif;
-      background-color: var(--ink-950);
-      color: white;
-      scrollbar-color: rgba(124,58,237,.6) rgba(16,8,34,.7);
-    }
+  /* Cards */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px; margin-bottom: 18px;
+    backdrop-filter: blur(8px);
+  }
+  .card-title {
+    font-size: .75rem; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+  }
 
-    body { min-height: 100vh; }
+  /* Info banner */
+  .info-banner {
+    background: rgba(124,58,237,.12); border: 1px solid rgba(124,58,237,.3);
+    border-radius: 10px; padding: 12px 16px; font-size: .82rem;
+    color: #c4b5fd; margin-bottom: 18px;
+  }
 
-    h1, h2, h3 { font-family: "Space Grotesk", system-ui, sans-serif; }
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 10px; border: none;
+    font-family: 'Space Grotesk',sans-serif; font-size: .9rem; font-weight: 600;
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+  }
+  .btn-primary { background: var(--violet); color: #fff; width: 100%; justify-content: center; }
+  .btn-primary:hover:not(:disabled) { background: var(--violet2); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: .45; cursor: default; transform: none; }
+  .btn-secondary {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 14px; font-size: .85rem;
+  }
+  .btn-secondary:hover:not(:disabled) { background: rgba(255,255,255,.08); }
+  .btn-secondary:disabled { opacity: .4; cursor: default; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; font-size: .8rem; }
+  .btn-ghost:hover { border-color: var(--blush); color: var(--blush); }
 
-    a { color: inherit; text-decoration: none; }
+  /* Progress */
+  .progress-wrap { background: rgba(255,255,255,.06); border-radius: 6px; height: 6px; overflow: hidden; margin: 12px 0 4px; }
+  .progress-bar  { height: 100%; background: linear-gradient(90deg,var(--violet),var(--blush)); border-radius: 6px; width: 0; transition: width .4s ease; }
 
-    /* Layout */
-    .page-wrapper {
-      position: relative;
-      min-height: 100vh;
-    }
+  /* File list */
+  .file-list { list-style: none; display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+  .file-list li { display: flex; align-items: center; gap: 10px; font-size: .82rem; color: var(--muted); }
+  .file-list .check   { color: #4ade80; font-weight: 700; }
+  .file-list .pending { color: var(--muted); }
+  #downloadFileStatus { font-size: .78rem; color: var(--muted); min-height: 18px; margin-top: 4px; }
 
-    .hero-glow {
-      pointer-events: none;
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at 15% 15%, rgba(124,58,237,.35), transparent 55%),
-        radial-gradient(circle at 85% 5%,  rgba(244,114,182,.2), transparent 50%),
-        radial-gradient(circle at 30% 90%, rgba(99,102,241,.25), transparent 60%);
-      opacity: .9;
-    }
+  /* Model status badge */
+  .model-status { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; padding: 3px 10px; border-radius: 20px; }
+  .model-status.loading { background: rgba(251,191,36,.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,.25); }
+  .model-status.ready   { background: rgba(74,222,128,.1);  color: #4ade80; border: 1px solid rgba(74,222,128,.25); }
+  .model-status.idle    { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+  .model-status-wrap { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
 
-    .container {
-      position: relative;
-      max-width: 1152px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 2.5rem;
-      padding: 3rem 1.5rem;
-    }
+  /* Audio upload zone */
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: 10px;
+    padding: 28px; text-align: center; cursor: pointer; transition: border-color .2s;
+  }
+  .upload-zone:hover { border-color: var(--violet); }
+  .upload-zone input { display: none; }
+  .upload-zone p { color: var(--muted); font-size: .88rem; margin-top: 6px; }
 
-    /* Glass card */
-    .glass-card {
-      border: 1px solid var(--white-10);
-      background: var(--white-5);
-      backdrop-filter: blur(24px);
-      box-shadow: 0 24px 80px rgba(10,6,21,.35);
-    }
+  #micStatus { font-size: .82rem; color: var(--muted); margin-top: 8px; }
+  audio { width: 100%; margin-top: 10px; display: none; }
 
-    /* Buttons */
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: .5rem;
-      border-radius: 9999px;
-      background: var(--violet-500);
-      padding: .75rem 1.5rem;
-      font-size: .875rem;
-      font-weight: 600;
-      color: white;
-      cursor: pointer;
-      border: none;
-      transition: background .15s;
-      font-family: inherit;
-    }
-    .btn-primary:hover:not(:disabled) { background: var(--violet-400); }
-    .btn-primary:disabled {
-      cursor: not-allowed;
-      background: rgba(124,58,237,.5);
-    }
+  textarea#transcriptArea {
+    width: 100%; min-height: 120px; background: rgba(0,0,0,.3);
+    border: 1px solid var(--border); border-radius: 10px; color: var(--text);
+    font-family: 'Manrope',sans-serif; font-size: .9rem; padding: 12px; resize: vertical;
+  }
+  textarea#transcriptArea:focus { outline: none; border-color: var(--violet); }
+  .transcript-controls { display: flex; gap: 8px; margin-top: 8px; }
 
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: .5rem;
-      border-radius: 9999px;
-      border: 1px solid var(--white-15);
-      background: var(--white-5);
-      padding: .625rem 1.25rem;
-      font-size: .875rem;
-      font-weight: 600;
-      color: var(--white-80);
-      cursor: pointer;
-      transition: border-color .15s, color .15s;
-      font-family: inherit;
-    }
-    .btn-secondary:hover:not(:disabled) { border-color: var(--violet-300); color: white; }
-    .btn-secondary:disabled { cursor: not-allowed; color: var(--white-40); }
+  .action-row { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
 
-    .btn-danger {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: .5rem;
-      border-radius: 9999px;
-      border: 1px solid rgba(239,68,68,.4);
-      background: rgba(239,68,68,.1);
-      padding: .625rem 1.25rem;
-      font-size: .875rem;
-      font-weight: 600;
-      color: rgba(252,165,165,.8);
-      cursor: pointer;
-      transition: border-color .15s, color .15s;
-      font-family: inherit;
-    }
-    .btn-danger:hover:not(:disabled) { border-color: rgba(239,68,68,.7); color: #fca5a5; }
-    .btn-danger:disabled { cursor: not-allowed; opacity: .5; }
+  /* Loading overlay */
+  #loadingOverlay { text-align: center; padding: 40px 0; color: var(--muted); }
+  #loadingOverlay .big { font-size: 2.2rem; display: block; margin-bottom: 10px; }
 
-    /* Language toggle */
-    .lang-toggle {
-      display: inline-flex;
-      align-items: center;
-      border-radius: 9999px;
-      border: 1px solid var(--white-15);
-      background: var(--white-5);
-      padding: .25rem;
-      font-size: .6875rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .2em;
-      color: var(--white-70);
-    }
-
-    .lang-option {
-      border-radius: 9999px;
-      padding: .25rem .75rem;
-      cursor: pointer;
-      background: transparent;
-      border: none;
-      color: var(--white-70);
-      font-family: inherit;
-      font-size: inherit;
-      font-weight: inherit;
-      letter-spacing: inherit;
-      text-transform: inherit;
-      transition: color .15s;
-    }
-    .lang-option:hover { color: white; }
-    .lang-option.is-active {
-      background: rgba(124,58,237,.25);
-      color: white;
-      box-shadow: 0 0 40px rgba(124,58,237,.35);
-    }
-
-    /* Tags / badges */
-    .tag {
-      display: inline-flex;
-      width: fit-content;
-      align-items: center;
-      gap: .5rem;
-      border-radius: 9999px;
-      border: 1px solid var(--white-15);
-      background: var(--white-5);
-      padding: .5rem 1rem;
-      font-size: .75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .2em;
-      color: var(--white-70);
-    }
-    .tag-dot {
-      display: inline-flex;
-      height: .5rem;
-      width: .5rem;
-      border-radius: 9999px;
-      background: var(--violet-400);
-      box-shadow: 0 0 40px rgba(124,58,237,.35);
-    }
-
-    .badge-violet {
-      border-radius: 9999px;
-      border: 1px solid rgba(124,58,237,.4);
-      background: rgba(124,58,237,.15);
-      padding: .25rem 1rem;
-      font-size: .875rem;
-      color: var(--violet-200);
-    }
-    .badge-neutral {
-      border-radius: 9999px;
-      border: 1px solid var(--white-10);
-      background: var(--white-5);
-      padding: .25rem 1rem;
-      font-size: .875rem;
-      color: var(--white-70);
-    }
-
-    /* Header */
-    .header {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    .header-top {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-    .header-links {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: .75rem;
-    }
-    .header-link {
-      display: inline-flex;
-      align-items: center;
-      gap: .5rem;
-      border-radius: 9999px;
-      border: 1px solid var(--white-15);
-      background: var(--white-5);
-      padding: .5rem .75rem;
-      font-size: .75rem;
-      font-weight: 600;
-      color: var(--white-70);
-      transition: color .15s;
-    }
-    .header-link:hover { color: var(--violet-200); }
-    .avatar {
-      height: 2.5rem;
-      width: 2.5rem;
-      border-radius: 9999px;
-      border: 1px solid var(--white-20, rgba(255,255,255,.2));
-    }
-
-    .header-title {
-      font-size: clamp(2rem, 5vw, 3.75rem);
-      font-weight: 600;
-      color: white;
-      line-height: 1.1;
-    }
-    .header-subtitle {
-      max-width: 42rem;
-      font-size: clamp(.9375rem, 2vw, 1.125rem);
-      color: var(--white-70);
-    }
-
-    /* Grid layout */
-    .main-grid {
-      display: grid;
-      gap: 1.5rem;
-    }
-    @media (min-width: 1024px) {
-      .main-grid { grid-template-columns: minmax(0,1.3fr) minmax(0,.7fr); }
-    }
-
-    /* Card internals */
-    .card-body {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      border-radius: 1.5rem;
-      padding: 1.5rem;
-    }
-    @media (min-width: 640px) { .card-body { padding: 2rem; } }
-
-    .label {
-      font-size: .75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .2em;
-      color: var(--white-60);
-    }
-
-    /* Progress bar */
-    .progress-wrap {
-      height: .5rem;
-      width: 100%;
-      overflow: hidden;
-      border-radius: 9999px;
-      background: var(--white-10);
-    }
-    .progress-bar {
-      height: 100%;
-      border-radius: 9999px;
-      background: linear-gradient(to right, var(--violet-400), var(--violet-500), var(--blush-500));
-      transition: width .3s;
-      width: 0%;
-    }
-
-    /* Status row */
-    .status-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: .875rem;
-      color: var(--white-70);
-    }
-    .status-label { color: var(--white-70); }
-    .status-detail { color: var(--white-60); }
-
-    /* Transcript / result */
-    .transcript-area {
-      width: 100%;
-      min-height: 180px;
-      border-radius: 1rem;
-      border: 1px solid var(--white-10);
-      background: rgba(22,11,43,.8);
-      padding: .75rem 1rem;
-      font-size: 1rem;
-      color: var(--white-90);
-      resize: vertical;
-      font-family: inherit;
-      line-height: 1.6;
-    }
-    .transcript-area:focus {
-      outline: none;
-      box-shadow: 0 0 0 2px var(--violet-300);
-    }
-    .transcript-area::placeholder { color: var(--white-40); }
-
-    /* Drop zone */
-    .drop-zone {
-      border: 2px dashed var(--white-15);
-      border-radius: 1rem;
-      padding: 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color .15s, background .15s;
-      color: var(--white-60);
-    }
-    .drop-zone:hover, .drop-zone.drag-over {
-      border-color: var(--violet-400);
-      background: rgba(124,58,237,.05);
-      color: var(--white-80);
-    }
-    .drop-zone-icon {
-      font-size: 2rem;
-      margin-bottom: .5rem;
-    }
-
-    /* Mic button */
-    .mic-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 3.5rem;
-      height: 3.5rem;
-      border-radius: 9999px;
-      background: var(--violet-500);
-      color: white;
-      cursor: pointer;
-      border: none;
-      font-size: 1.5rem;
-      transition: background .15s, transform .1s;
-    }
-    .mic-btn:hover:not(:disabled) { background: var(--violet-400); }
-    .mic-btn.recording {
-      background: #ef4444;
-      animation: pulse 1.5s infinite;
-    }
-    .mic-btn:disabled { cursor: not-allowed; opacity: .5; }
-
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.4); }
-      50%       { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .animate-spin { animation: spin 1s linear infinite; display: inline-block; }
-
-    /* File info */
-    .file-info {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-      padding: .75rem 1rem;
-      border-radius: .75rem;
-      border: 1px solid var(--white-10);
-      background: var(--white-5);
-      font-size: .875rem;
-      color: var(--white-80);
-    }
-
-    /* Render state badge */
-    .render-badge {
-      border-radius: 9999px;
-      border: 1px solid var(--white-10);
-      background: var(--white-5);
-      padding: .25rem .75rem;
-      font-size: .75rem;
-      color: var(--white-60);
-    }
-    .render-badge.ready {
-      border-color: rgba(196,181,253,.4);
-      background: rgba(124,58,237,.2);
-      color: var(--violet-200);
-    }
-    .render-badge.error {
-      border-color: rgba(248,113,113,.4);
-      background: rgba(239,68,68,.2);
-      color: #fca5a5;
-    }
-
-    /* Audio player */
-    audio {
-      width: 100%;
-      border-radius: .5rem;
-    }
-    audio::-webkit-media-controls-panel {
-      background: var(--ink-800);
-    }
-
-    .flex { display: flex; }
-    .flex-col { flex-direction: column; }
-    .flex-wrap { flex-wrap: wrap; }
-    .items-center { align-items: center; }
-    .items-start { align-items: flex-start; }
-    .justify-between { justify-content: space-between; }
-    .gap-2 { gap: .5rem; }
-    .gap-3 { gap: .75rem; }
-    .gap-4 { gap: 1rem; }
-    .gap-6 { gap: 1.5rem; }
-    .gap-8 { gap: 2rem; }
-    .w-full { width: 100%; }
-    .hidden { display: none !important; }
-    .text-sm { font-size: .875rem; }
-    .text-xs { font-size: .75rem; }
-    .font-semibold { font-weight: 600; }
-    .text-white80 { color: var(--white-80); }
-    .text-white60 { color: var(--white-60); }
-    .mt-auto { margin-top: auto; }
-
-    /* Model file list */
-    .file-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-    }
-    .file-list li {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: .5rem .75rem;
-      border-radius: .5rem;
-      background: var(--white-5);
-      font-size: .8125rem;
-      color: var(--white-70);
-    }
-    .file-list .size {
-      color: var(--white-40);
-      font-size: .75rem;
-    }
-    .file-list .check { color: #4ade80; }
-    .file-list .pending { color: var(--white-40); }
-
-    /* Links in text */
-    .link {
-      color: var(--white-80);
-      text-decoration-thickness: 1px;
-      text-underline-offset: 3px;
-      transition: color .15s;
-    }
-    .link:hover {
-      color: var(--violet-200);
-      text-decoration: underline;
-    }
-
-    /* Info banner */
-    .info-banner {
-      padding: .75rem 1rem;
-      border-radius: .75rem;
-      border: 1px solid rgba(99,102,241,.3);
-      background: rgba(99,102,241,.08);
-      font-size: .8125rem;
-      color: var(--violet-300);
-      line-height: 1.5;
-    }
-
-    .warn-banner {
-      padding: .75rem 1rem;
-      border-radius: .75rem;
-      border: 1px solid rgba(234,179,8,.3);
-      background: rgba(234,179,8,.08);
-      font-size: .8125rem;
-      color: #fde047;
-      line-height: 1.5;
-    }
-
-    .input-row {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-    }
-
-    /* Responsive tweaks */
-    @media (max-width: 640px) {
-      .lang-toggle { padding: .125rem; font-size: .625rem; letter-spacing: .15em; }
-      .lang-option { padding: .25rem .5rem; }
-    }
-
-    /* Section divider text */
-    .or-divider {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-      color: var(--white-40);
-      font-size: .8125rem;
-    }
-    .or-divider::before, .or-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--white-10);
-    }
-
-    #hidden-file-input { display: none; }
-  </style>
+  .spin { animation: spin .8s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hidden { display: none !important; }
+</style>
 </head>
 <body>
-<div class="page-wrapper">
-  <div class="hero-glow"></div>
-  <div class="container">
+<div class="container">
 
-    <!-- Header -->
-    <header class="header">
-      <div class="header-top">
-        <div class="tag">
-          <span class="tag-dot"></span>
-          <span data-i18n="headerTag"></span>
-        </div>
-        <div class="flex flex-wrap items-center gap-3">
-          <img
-            class="avatar"
-            src="https://avatars.githubusercontent.com/u/1218286?v=4"
-            alt="xezpeleta"
-            loading="lazy"
-          />
-          <a
-            class="header-link"
-            href="https://github.com/xezpeleta"
-            target="_blank"
-            rel="noreferrer"
-          >GitHub</a>
-          <a
-            class="header-link"
-            href="https://huggingface.co/xezpeleta"
-            target="_blank"
-            rel="noreferrer"
-          >Hugging Face</a>
-          <div class="lang-toggle" role="group" aria-label="Language">
-            <button class="lang-option" type="button" data-lang="eu">EU</button>
-            <button class="lang-option" type="button" data-lang="es">ES</button>
-            <button class="lang-option" type="button" data-lang="en">EN</button>
-          </div>
+  <header>
+    <h1>🦜 <span>Parakeet</span> Euskara</h1>
+    <p data-i18n="subtitle">Hizketaren ezagutza nabigatzailean — eredua lokalean exekutatzen da</p>
+    <div class="lang-switcher">
+      <button class="lang-btn" onclick="setLanguage('eu')">EU</button>
+      <button class="lang-btn" onclick="setLanguage('es')">ES</button>
+      <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+    </div>
+  </header>
+
+  <div class="info-banner" data-i18n="infoBanner">
+    ⚗️ Esperimentala: ereduak ~670 MB deskargatu behar ditu.
+    OPFS cache-ak hurrengo bisitetan azkartu egiten du.
+  </div>
+
+  <!-- WASM loading spinner -->
+  <div id="loadingOverlay">
+    <span class="big spin">⚙️</span>
+    <span data-i18n="statusLoading">WASM kargatu…</span>
+  </div>
+
+  <!-- Main UI: hidden until WASM + Rust are ready -->
+  <div id="mainUi" class="hidden">
+
+    <!-- ── Model card ── -->
+    <div class="card">
+      <div class="model-status-wrap">
+        <p class="card-title" data-i18n="modelCardTitle">EREDUA</p>
+        <div id="modelBadge" class="model-status idle">
+          <span>●</span>
+          <span id="modelBadgeText" data-i18n="statusIdle">Prestatzeko</span>
         </div>
       </div>
 
-      <div class="flex flex-col gap-4">
-        <h1 class="header-title" data-i18n="title"></h1>
-        <p class="header-subtitle" data-i18n="subtitle"></p>
+      <ul class="file-list">
+        <li><span id="file0" class="pending">○</span> encoder.int8.onnx <small style="color:#4b4558">(652 MB)</small></li>
+        <li><span id="file1" class="pending">○</span> decoder.int8.onnx <small style="color:#4b4558">(11.8 MB)</small></li>
+        <li><span id="file2" class="pending">○</span> joiner.int8.onnx  <small style="color:#4b4558">(6.4 MB)</small></li>
+        <li><span id="file3" class="pending">○</span> tokens.txt        <small style="color:#4b4558">(94 kB)</small></li>
+      </ul>
+
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <p id="downloadFileStatus"></p>
+
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+        <button id="downloadBtn" class="btn btn-primary" onclick="onDownload()" disabled>
+          ⬇️ <span id="downloadLabel" data-i18n="downloadBtn">Eredua deskargatu</span>
+        </button>
+        <button id="clearCacheBtn" class="btn btn-ghost hidden" onclick="onClearCache()">
+          🗑️ <span data-i18n="clearCacheBtn">Cachea garbitu</span>
+        </button>
       </div>
+    </div>
 
-      <div class="flex flex-wrap items-center gap-3">
-        <span class="badge-violet" data-i18n="modelBadge"></span>
-        <span class="badge-neutral" data-i18n="langBadge"></span>
-        <div class="flex flex-wrap items-center gap-4 text-sm text-white60">
-          <span data-i18n="references"></span>
-          <a class="link" href="https://github.com/k2-fsa/sherpa-onnx" target="_blank" rel="noreferrer" data-i18n="refSherpa"></a>
-          <a class="link" href="https://huggingface.co/xezpeleta/parakeet-tdt-0.6b-v3-basque-sherpa-onnx" target="_blank" rel="noreferrer" data-i18n="refModel"></a>
-          <a class="link" href="https://huggingface.co/datasets/asierhv/composite_corpus_eu_v2.1" target="_blank" rel="noreferrer" data-i18n="refDataset"></a>
-        </div>
+    <!-- ── Audio card ── -->
+    <div class="card">
+      <p class="card-title" data-i18n="audioCardTitle">AUDIOA</p>
+
+      <div class="upload-zone" onclick="document.getElementById('audioInput').click()">
+        <input type="file" id="audioInput" accept="audio/*,video/*" onchange="onFileSelected(event)"/>
+        <div style="font-size:2rem">🎵</div>
+        <p data-i18n="uploadLabel">Audio fitxategia aukeratu edo arrastatu hona</p>
+        <p style="font-size:.73rem;margin-top:4px;color:#4b4558">WAV · MP3 · OGG · WebM · MP4…</p>
       </div>
-    </header>
+      <audio id="uploadedPlayer" controls></audio>
 
-    <!-- Main grid -->
-    <section class="main-grid">
-
-      <!-- Left column: transcription UI -->
-      <div class="glass-card card-body flex flex-col gap-6">
-
-        <!-- Info / warning -->
-        <div id="noWasmBanner" class="warn-banner hidden">
-          ⚠️ <span data-i18n="noWasm"></span>
-        </div>
-        <div id="infoBanner" class="info-banner">
-          🧪 <span data-i18n="infoBanner"></span>
-        </div>
-
-        <!-- Audio input section -->
-        <div class="flex flex-col gap-3">
-          <div class="label" data-i18n="audioInputLabel"></div>
-
-          <!-- Drop zone for file upload -->
-          <div
-            id="dropZone"
-            class="drop-zone"
-            tabindex="0"
-            role="button"
-            aria-label="Upload audio file"
-          >
-            <div class="drop-zone-icon">🎵</div>
-            <div data-i18n="dropZoneText"></div>
-            <div style="font-size:.75rem; margin-top:.25rem; color: var(--white-40)" data-i18n="dropZoneHint"></div>
-          </div>
-          <input id="hidden-file-input" type="file" accept="audio/*" />
-
-          <!-- Selected file info -->
-          <div id="fileInfo" class="file-info hidden">
-            <span>🎶</span>
-            <span id="fileName" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
-            <span id="fileSize" style="color:var(--white-40); font-size:.75rem; white-space:nowrap;"></span>
-            <button
-              id="clearFileBtn"
-              onclick="clearFile()"
-              style="background:none;border:none;cursor:pointer;color:var(--white-40);font-size:1rem;padding:.125rem .25rem;transition:color .15s;"
-              onmouseover="this.style.color='#fca5a5'"
-              onmouseout="this.style.color='var(--white-40)'"
-            >✕</button>
-          </div>
-
-          <div class="or-divider" data-i18n="orDivider"></div>
-
-          <!-- Microphone input -->
-          <div class="input-row">
-            <button
-              id="micBtn"
-              class="mic-btn"
-              title="Record"
-              disabled
-              onclick="toggleRecording()"
-            >🎙️</button>
-            <div class="flex flex-col gap-1" style="flex:1">
-              <div class="text-sm font-semibold text-white80" data-i18n="micLabel"></div>
-              <div id="micStatus" class="text-xs text-white60" data-i18n="micIdle"></div>
-            </div>
-            <audio id="micPlayer" controls class="hidden" style="flex:2; min-width:0;"></audio>
-          </div>
-        </div>
-
-        <!-- Action buttons -->
-        <div class="flex flex-wrap items-center gap-3">
-          <button
-            id="transcribeBtn"
-            class="btn-primary"
-            onclick="transcribe()"
-            disabled
-          >
-            <span id="transcribeIcon">📝</span>
-            <span id="transcribeLabel" data-i18n="transcribeBtn"></span>
-          </button>
-          <button
-            class="btn-secondary"
-            onclick="clearTranscript()"
-          >
-            <span data-i18n="clearBtn"></span>
-          </button>
-        </div>
-
-        <!-- Status row -->
-        <div class="flex flex-col gap-3">
-          <div class="status-row">
-            <span id="statusLabel" class="status-label" data-i18n="statusIdle"></span>
-            <span id="statusDetail" class="status-detail" data-i18n="statusReady"></span>
-          </div>
-          <div class="progress-wrap">
-            <div id="progressBar" class="progress-bar"></div>
-          </div>
-        </div>
-
-        <!-- Transcript area -->
-        <div class="flex flex-col gap-2">
-          <div class="label" data-i18n="transcriptLabel"></div>
-          <textarea
-            id="transcriptArea"
-            class="transcript-area"
-            readonly
-            placeholder="..."
-          ></textarea>
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <span id="renderState" class="render-badge" data-i18n="renderNone"></span>
-            <button
-              id="copyBtn"
-              class="btn-secondary"
-              onclick="copyTranscript()"
-              disabled
-              style="font-size:.8125rem; padding:.375rem .875rem;"
-            >
-              <span data-i18n="copyBtn"></span>
-            </button>
-          </div>
-        </div>
+      <div style="margin-top:16px;">
+        <button id="micBtn" class="btn btn-secondary" onclick="onMicToggle()" disabled>
+          <span id="micIcon">🎤</span>
+          <span id="micLabel" data-i18n="micLabel">Mikrofonoa</span>
+        </button>
+        <p id="micStatus" data-i18n="micIdle">Prest grabatzeko</p>
+        <audio id="micPlayer" controls></audio>
       </div>
+    </div>
 
-      <!-- Right column: model management -->
-      <div class="flex flex-col gap-6">
-
-        <!-- Model download card -->
-        <div class="glass-card card-body flex flex-col gap-4">
-          <div class="flex items-center justify-between">
-            <div class="text-sm font-semibold text-white80" data-i18n="modelCardTitle"></div>
-            <span id="modelStatus" class="render-badge" data-i18n="modelNotLoaded"></span>
-          </div>
-
-          <div class="info-banner" style="font-size:.75rem;">
-            <span data-i18n="modelSizeInfo"></span>
-          </div>
-
-          <ul class="file-list" id="fileList">
-            <li>
-              <span>encoder.int8.onnx</span>
-              <span class="flex items-center gap-2">
-                <span class="size">652 MB</span>
-                <span id="file0" class="pending">○</span>
-              </span>
-            </li>
-            <li>
-              <span>decoder.int8.onnx</span>
-              <span class="flex items-center gap-2">
-                <span class="size">11.8 MB</span>
-                <span id="file1" class="pending">○</span>
-              </span>
-            </li>
-            <li>
-              <span>joiner.int8.onnx</span>
-              <span class="flex items-center gap-2">
-                <span class="size">6.4 MB</span>
-                <span id="file2" class="pending">○</span>
-              </span>
-            </li>
-            <li>
-              <span>tokens.txt</span>
-              <span class="flex items-center gap-2">
-                <span class="size">94 kB</span>
-                <span id="file3" class="pending">○</span>
-              </span>
-            </li>
-          </ul>
-
-          <div>
-            <div id="downloadFileStatus" class="text-xs text-white60" style="margin-bottom:.5rem; min-height:1.25rem;"></div>
-            <button
-              id="downloadBtn"
-              class="btn-primary w-full"
-              onclick="downloadModel()"
-              disabled
-            >
-              <span id="downloadIcon">⬇️</span>
-              <span id="downloadLabel" data-i18n="downloadBtn"></span>
-            </button>
-            <button
-              id="clearCacheBtn"
-              class="btn-danger w-full hidden"
-              onclick="clearCache()"
-              style="margin-top:.5rem;"
-            >
-              <span data-i18n="clearCacheBtn"></span>
-            </button>
-          </div>
-        </div>
-
-        <!-- How it works card -->
-        <div class="glass-card card-body flex flex-col gap-3" style="font-size:.875rem; color: var(--white-60);">
-          <div class="text-sm font-semibold text-white80" data-i18n="howTitle"></div>
-          <ul style="list-style: none; display:flex; flex-direction:column; gap:.5rem;">
-            <li>🔒 <span data-i18n="how1"></span></li>
-            <li>📦 <span data-i18n="how2"></span></li>
-            <li>⚡ <span data-i18n="how3"></span></li>
-            <li>🌐 <span data-i18n="how4"></span></li>
-          </ul>
-          <div style="padding-top:.25rem; border-top: 1px solid var(--white-10); font-size:.75rem; color:var(--white-40)">
-            <span data-i18n="poweredBy"></span>
-            <a class="link" href="https://github.com/k2-fsa/sherpa-onnx" target="_blank" rel="noreferrer">sherpa-onnx</a>
-            &amp; WebAssembly
-          </div>
-        </div>
-
+    <!-- ── Transcription card ── -->
+    <div class="card">
+      <p class="card-title" data-i18n="transcriptCardTitle">TRANSKRIPZIOA</p>
+      <div class="action-row">
+        <button id="transcribeBtn" class="btn btn-primary" style="flex:1" onclick="onTranscribe()" disabled>
+          <span id="transcribeIcon">📝</span>
+          <span data-i18n="transcribeBtn">Transkribatu</span>
+        </button>
+        <button class="btn btn-secondary" onclick="onClearTranscript()">
+          <span data-i18n="clearBtn">Garbitu</span>
+        </button>
       </div>
-    </section>
+      <textarea id="transcriptArea" readonly placeholder="…" style="margin-top:12px"></textarea>
+      <div class="transcript-controls">
+        <button id="copyBtn" class="btn btn-secondary" onclick="onCopy()" disabled>
+          📋 <span data-i18n="copyBtn">Kopiatu</span>
+        </button>
+      </div>
+    </div>
 
-  </div><!-- /container -->
-</div><!-- /page-wrapper -->
+  </div><!-- /mainUi -->
 
-<!-- Hidden file input only, no visible label -->
+  <footer style="text-align:center;padding-top:20px;font-size:.73rem;color:#4b4558;">
+    <a href="https://huggingface.co/xezpeleta/parakeet-tdt-0.6b-v3-basque-sherpa-onnx"
+       target="_blank" style="color:var(--violet);text-decoration:none;">
+      xezpeleta/parakeet-tdt-0.6b-v3-basque-sherpa-onnx
+    </a>
+    &nbsp;·&nbsp;
+    <a href="https://github.com/k2-fsa/sherpa-onnx" target="_blank"
+       style="color:var(--violet);text-decoration:none;">sherpa-onnx</a>
+  </footer>
+</div>
 
-<script>
-// =========================================================
-// i18n translations
-// =========================================================
-const translations = {
+<!-- Bridge: browser API glue for Rust WASM -->
+<script src="bridge.js"></script>
+
+<!-- App logic (ES module: loads Rust WASM, wires up DOM) -->
+<script type="module">
+
+// ═══════════════════════════════════════════════════════════
+// i18n
+// ═══════════════════════════════════════════════════════════
+const T = {
   eu: {
-    headerTag: 'Euskarazko ahots ezagutza demoa',
-    title: 'Parakeet ASR Euskaraz',
-    subtitle: 'Transkribatu audioa zuzenean zure nabigatzailean, Parakeet TDT eta WebAssembly teknologiekin. Datua ez da inoiz zure gailutik irten.',
-    modelBadge: 'Eredua: parakeet-tdt-0.6b-v3-basque',
-    langBadge: 'Hizkuntza: Euskara',
-    references: 'Erreferentziak:',
-    refSherpa: 'sherpa-onnx',
-    refModel: 'Eredua HF-n',
-    refDataset: 'Dataseta',
-    audioInputLabel: 'Audio sarrera',
-    dropZoneText: 'Arrastatu audio fitxategi bat hona edo klikatu kargatzeko',
-    dropZoneHint: 'WAV, MP3, OGG, FLAC, M4A... onartzen dira',
-    orDivider: 'edo',
-    micLabel: 'Mikrofonoa',
-    micIdle: 'Grabatzeko sakatu botoia',
-    micRecording: '● Grabatzen... Gelditzeko sakatu',
-    micDone: 'Grabazioa prest',
-    transcribeBtn: 'Transkribatu',
-    clearBtn: 'Garbitu',
-    statusIdle: 'Zain',
-    statusReady: 'Eredua prest',
-    statusLoading: 'Hasieratzen',
-    statusTranscribing: 'Transkribatzen...',
-    statusDownloading: 'Deskargatzen',
-    statusDownloadingDetail: 'Ereduaren fitxategiak deskargatzen',
-    statusError: 'Errorea',
-    transcriptLabel: 'Transkripzioa',
-    renderNone: 'Oraindik emaitzarik ez',
-    renderReady: 'Transkripzioa prest',
-    renderError: 'Zerbait gaizki joan da',
-    copyBtn: 'Kopiatu',
-    modelCardTitle: 'Eredua',
-    modelNotLoaded: 'Ez kargatua',
-    modelLoaded: 'Prest',
-    modelLoading: 'Deskargatzen...',
-    downloadBtn: 'Deskargatu eredua (~670 MB)',
-    downloadBtnCached: 'Kargatu gordeta dagoen eredua',
-    clearCacheBtn: '🗑️ Cachea garbitu',
-    cacheHit: 'Gordeta dagoen datua aurkitu da (%d MB). Sareko deskarga saihestea.',
-    modelSizeInfo: '⚠️ Lehen erabileran ~670 MB deskargatu behar dira. Behin deskargatuta, nabigatzailean gordeta geratzen da (OPFS).'  ,
-    howTitle: 'Nola funtzionatzen du?',
-    how1: 'Datu guztiak zure gailuan prozesatzen dira. Ez zerbitzaririk.',
-    how2: 'Eredua HuggingFace-tik deskargatzen da behin (sesio bakoitzeko).',
-    how3: 'WebAssembly + sherpa-onnx motorra erabiliz, transkripzioa azkar egiten da.',
-    how4: 'Konexioa eten dezakezu eredua kargatuta dagoenean.',
-    poweredBy: 'Eginda ',
-    infoBanner: 'Demo hau esperimentala da. Eredua handiegia da egungo WASM memoriaren mugentzat (~2 GB). Encoder txikiagoa (int8) erabiltzen da.',
-    noWasm: 'Zure nabigatzaileak ez du WebAssembly onartzen. Erabili Chrome, Firefox edo Edge.',
+    subtitle:            'Hizketaren ezagutza nabigatzailean — eredua lokalean exekutatzen da',
+    infoBanner:          '⚗️ Esperimentala: ereduak ~670 MB deskargatu behar ditu. OPFS cache-ak hurrengo bisitetan azkartu egiten du.',
+    modelCardTitle:      'EREDUA',
+    audioCardTitle:      'AUDIOA',
+    transcriptCardTitle: 'TRANSKRIPZIOA',
+    statusLoading:       '⏳ WASM kargatu…',
+    statusIdle:          'Prestatzeko',
+    statusReady:         'Prest',
+    statusDownloading:   'Deskargatzen…',
+    downloadBtn:         'Eredua deskargatu',
+    downloadBtnCached:   'Gordetako eredua kargatu',
+    clearCacheBtn:       'Cachea garbitu',
+    uploadLabel:         'Audio fitxategia aukeratu edo arrastatu hona',
+    micLabel:            'Mikrofonoa',
+    micIdle:             'Prest grabatzeko',
+    micRecording:        '⏹ Gelditu',
+    micDone:             '✓ Grabazioa amaitua',
+    transcribeBtn:       'Transkribatu',
+    clearBtn:            'Garbitu',
+    copyBtn:             'Kopiatu',
   },
   es: {
-    headerTag: 'Demo de reconocimiento de voz en euskera',
-    title: 'Parakeet ASR en euskera',
-    subtitle: 'Transcribe audio directamente en tu navegador con Parakeet TDT y WebAssembly. Los datos nunca salen de tu dispositivo.',
-    modelBadge: 'Modelo: parakeet-tdt-0.6b-v3-basque',
-    langBadge: 'Idioma: Euskera',
-    references: 'Referencias:',
-    refSherpa: 'sherpa-onnx',
-    refModel: 'Modelo en HF',
-    refDataset: 'Dataset',
-    audioInputLabel: 'Entrada de audio',
-    dropZoneText: 'Arrastra un archivo de audio aquí o haz clic para cargar',
-    dropZoneHint: 'Se aceptan WAV, MP3, OGG, FLAC, M4A...',
-    orDivider: 'o',
-    micLabel: 'Micrófono',
-    micIdle: 'Pulsa el botón para grabar',
-    micRecording: '● Grabando... Pulsa para detener',
-    micDone: 'Grabación lista',
-    transcribeBtn: 'Transcribir',
-    clearBtn: 'Limpiar',
-    statusIdle: 'En espera',
-    statusReady: 'Modelo listo',
-    statusLoading: 'Iniciando',
-    statusTranscribing: 'Transcribiendo...',
-    statusDownloading: 'Descargando',
-    statusDownloadingDetail: 'Descargando archivos del modelo',
-    statusError: 'Error',
-    transcriptLabel: 'Transcripción',
-    renderNone: 'Sin resultados aún',
-    renderReady: 'Transcripción lista',
-    renderError: 'Algo salió mal',
-    copyBtn: 'Copiar',
-    modelCardTitle: 'Modelo',
-    modelNotLoaded: 'No cargado',
-    modelLoaded: 'Listo',
-    modelLoading: 'Descargando...',
-    downloadBtn: 'Descargar modelo (~670 MB)',
-    downloadBtnCached: 'Cargar modelo guardado',
-    clearCacheBtn: '🗑️ Limpiar caché',
-    cacheHit: 'Caché encontrada (%d MB). Se omite la descarga de red.',
-    modelSizeInfo: '⚠️ En el primer uso se descargan ~670 MB. Una vez descargado, el modelo se guarda en el navegador (OPFS).'  ,
-    howTitle: '¿Cómo funciona?',
-    how1: 'Todo se procesa en tu dispositivo. Sin servidores.',
-    how2: 'El modelo se descarga de HuggingFace una vez (por sesión).',
-    how3: 'Usando WebAssembly + motor sherpa-onnx, la transcripción es rápida.',
-    how4: 'Puedes desconectarte de Internet una vez cargado el modelo.',
-    poweredBy: 'Desarrollado con ',
-    infoBanner: 'Esta demo es experimental. El modelo es grande para los límites actuales de memoria WASM (~2 GB). Se usa el encoder cuantizado int8.',
-    noWasm: 'Tu navegador no soporta WebAssembly. Usa Chrome, Firefox o Edge.',
+    subtitle:            'Reconocimiento de voz en el navegador — el modelo se ejecuta localmente',
+    infoBanner:          '⚗️ Experimental: el modelo necesita ~670 MB de descarga. La caché OPFS acelera las visitas posteriores.',
+    modelCardTitle:      'MODELO',
+    audioCardTitle:      'AUDIO',
+    transcriptCardTitle: 'TRANSCRIPCIÓN',
+    statusLoading:       '⏳ Cargando WASM…',
+    statusIdle:          'Listo para cargar',
+    statusReady:         'Listo',
+    statusDownloading:   'Descargando…',
+    downloadBtn:         'Descargar modelo',
+    downloadBtnCached:   'Cargar modelo guardado',
+    clearCacheBtn:       'Limpiar caché',
+    uploadLabel:         'Seleccionar o arrastrar archivo de audio',
+    micLabel:            'Micrófono',
+    micIdle:             'Listo para grabar',
+    micRecording:        '⏹ Detener',
+    micDone:             '✓ Grabación finalizada',
+    transcribeBtn:       'Transcribir',
+    clearBtn:            'Limpiar',
+    copyBtn:             'Copiar',
   },
   en: {
-    headerTag: 'Basque speech recognition demo',
-    title: 'Parakeet ASR for Basque',
-    subtitle: 'Transcribe audio directly in your browser using Parakeet TDT and WebAssembly. Your data never leaves your device.',
-    modelBadge: 'Model: parakeet-tdt-0.6b-v3-basque',
-    langBadge: 'Language: Basque (Euskara)',
-    references: 'References:',
-    refSherpa: 'sherpa-onnx',
-    refModel: 'Model on HF',
-    refDataset: 'Dataset',
-    audioInputLabel: 'Audio input',
-    dropZoneText: 'Drag an audio file here or click to upload',
-    dropZoneHint: 'WAV, MP3, OGG, FLAC, M4A... supported',
-    orDivider: 'or',
-    micLabel: 'Microphone',
-    micIdle: 'Press the button to record',
-    micRecording: '● Recording... Press to stop',
-    micDone: 'Recording ready',
-    transcribeBtn: 'Transcribe',
-    clearBtn: 'Clear',
-    statusIdle: 'Idle',
-    statusReady: 'Model ready',
-    statusLoading: 'Initializing',
-    statusTranscribing: 'Transcribing...',
-    statusDownloading: 'Downloading',
-    statusDownloadingDetail: 'Fetching model files',
-    statusError: 'Error',
-    transcriptLabel: 'Transcript',
-    renderNone: 'No results yet',
-    renderReady: 'Transcript ready',
-    renderError: 'Something went wrong',
-    copyBtn: 'Copy',
-    modelCardTitle: 'Model',
-    modelNotLoaded: 'Not loaded',
-    modelLoaded: 'Ready',
-    modelLoading: 'Downloading...',
-    downloadBtn: 'Download model (~670 MB)',
-    downloadBtnCached: 'Load cached model',
-    clearCacheBtn: '🗑️ Clear cache',
-    cacheHit: 'Cache found (%d MB). Skipping network download.',
-    modelSizeInfo: '⚠️ First use requires downloading ~670 MB. Once downloaded the model is saved locally in your browser (OPFS).'  ,
-    howTitle: 'How does it work?',
-    how1: 'All processing happens on your device. No server involved.',
-    how2: 'The model is downloaded from HuggingFace once per session.',
-    how3: 'Using WebAssembly + sherpa-onnx engine, transcription is fast.',
-    how4: 'You can disconnect from the Internet once the model is loaded.',
-    poweredBy: 'Powered by ',
-    infoBanner: 'This demo is experimental. The model may be large for current WASM memory limits (~2 GB). The int8 quantized encoder is used.',
-    noWasm: 'Your browser does not support WebAssembly. Please use Chrome, Firefox, or Edge.',
+    subtitle:            'In-browser speech recognition — model runs locally',
+    infoBanner:          '⚗️ Experimental: model needs ~670 MB download. OPFS cache speeds up subsequent visits.',
+    modelCardTitle:      'MODEL',
+    audioCardTitle:      'AUDIO',
+    transcriptCardTitle: 'TRANSCRIPT',
+    statusLoading:       '⏳ Loading WASM…',
+    statusIdle:          'Ready to load',
+    statusReady:         'Ready',
+    statusDownloading:   'Downloading…',
+    downloadBtn:         'Download model',
+    downloadBtnCached:   'Load saved model',
+    clearCacheBtn:       'Clear cache',
+    uploadLabel:         'Select or drag an audio file here',
+    micLabel:            'Microphone',
+    micIdle:             'Ready to record',
+    micRecording:        '⏹ Stop recording',
+    micDone:             '✓ Recording done',
+    transcribeBtn:       'Transcribe',
+    clearBtn:            'Clear',
+    copyBtn:             'Copy',
   },
 };
 
-const SUPPORTED_LANGS = ['eu', 'es', 'en'];
-const STORAGE_LANG_KEY = 'parakeet_basque_asr_language';
-let currentLang = 'eu';
+window.translations = T;
 
-function detectLanguage() {
+window.currentLang = (() => {
+  const saved = localStorage.getItem('parakeet-lang');
+  if (saved && T[saved]) return saved;
+  const nav = (navigator.language || 'eu').toLowerCase();
+  if (nav.startsWith('eu')) return 'eu';
+  if (nav.startsWith('es')) return 'es';
+  return 'en';
+})();
+
+window.setLanguage = function(lang) {
+  if (!T[lang]) return;
+  window.currentLang = lang;
+  localStorage.setItem('parakeet-lang', lang);
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (T[lang][key]) el.textContent = T[lang][key];
+  });
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase() === lang);
+  });
+};
+
+// ═══════════════════════════════════════════════════════════
+// UI helpers called by bridge.js callbacks
+// ═══════════════════════════════════════════════════════════
+window.setWasmReady = function() {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+  document.getElementById('mainUi').classList.remove('hidden');
+};
+
+window.setModelStatus = function(state) {
+  const badge = document.getElementById('modelBadge');
+  const text  = document.getElementById('modelBadgeText');
+  badge.className = 'model-status ' + state;
+  const map = { idle: 'statusIdle', loading: 'statusDownloading', ready: 'statusReady' };
+  text.textContent = T[window.currentLang][map[state] || 'statusIdle'];
+};
+
+// ═══════════════════════════════════════════════════════════
+// Microphone recording
+// ═══════════════════════════════════════════════════════════
+let _recorder = null, _recChunks = [];
+
+window.onMicToggle = async function() {
+  if (_recorder && _recorder.state === 'recording') {
+    _recorder.stop();
+    return;
+  }
   try {
-    const stored = localStorage.getItem(STORAGE_LANG_KEY);
-    if (stored && SUPPORTED_LANGS.includes(stored)) return stored;
-  } catch {}
-  const browserLangs = (navigator.languages || [navigator.language]);
-  for (const lang of browserLangs) {
-    const lc = lang.toLowerCase();
-    for (const sl of SUPPORTED_LANGS) {
-      if (lc === sl || lc.startsWith(sl + '-')) return sl;
-    }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    _recChunks = [];
+    _recorder  = new MediaRecorder(stream);
+    _recorder.ondataavailable = e => _recChunks.push(e.data);
+    _recorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob   = new Blob(_recChunks, { type: 'audio/webm' });
+      const player = document.getElementById('micPlayer');
+      player.src   = URL.createObjectURL(blob);
+      player.style.display = 'block';
+      document.getElementById('micStatus').textContent  = T[window.currentLang].micDone;
+      document.getElementById('micIcon').textContent    = '🎤';
+      document.getElementById('micLabel').textContent   = T[window.currentLang].micLabel;
+      const ab = await blob.arrayBuffer();
+      window.parakeetWasm.set_audio_data(new Uint8Array(ab));
+    };
+    _recorder.start();
+    document.getElementById('micIcon').textContent  = '⏹';
+    document.getElementById('micLabel').textContent = T[window.currentLang].micRecording;
+    document.getElementById('micStatus').textContent = '🔴 ' + T[window.currentLang].micRecording;
+  } catch (err) {
+    alert('Microphone error: ' + err.message);
   }
-  return 'eu';
-}
+};
 
-function applyTranslations() {
-  const t = translations[currentLang];
-  document.documentElement.lang = currentLang;
-  document.title = t.title + ' – Parakeet ASR';
-  document.querySelectorAll('[data-i18n]').forEach((el) => {
-    const key = el.dataset.i18n;
-    if (t[key] !== undefined) el.textContent = t[key];
-  });
-}
+// ═══════════════════════════════════════════════════════════
+// File upload
+// ═══════════════════════════════════════════════════════════
+window.onFileSelected = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const player = document.getElementById('uploadedPlayer');
+  player.src = URL.createObjectURL(file);
+  player.style.display = 'block';
+  const reader = new FileReader();
+  reader.onload = e => window.parakeetWasm.set_audio_data(new Uint8Array(e.target.result));
+  reader.readAsArrayBuffer(file);
+};
 
-function setLanguage(lang, persist = true) {
-  currentLang = lang;
-  if (persist) {
-    try { localStorage.setItem(STORAGE_LANG_KEY, lang); } catch {}
+// ═══════════════════════════════════════════════════════════
+// Download / load model
+// ═══════════════════════════════════════════════════════════
+window.onDownload = async function() {
+  document.getElementById('downloadBtn').disabled = true;
+  setModelStatus('loading');
+  try {
+    await window.parakeetWasm.download_or_load_model();
+  } catch (err) {
+    console.error('[app] download_or_load_model error:', err);
+    setModelStatus('idle');
+    document.getElementById('downloadFileStatus').textContent =
+      '❌ ' + (err?.message || String(err));
+    document.getElementById('downloadBtn').disabled = false;
   }
-  document.querySelectorAll('.lang-option').forEach((btn) => {
-    const isActive = btn.dataset.lang === lang;
-    btn.classList.toggle('is-active', isActive);
-    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-  });
-  applyTranslations();
-}
+};
 
-document.querySelectorAll('.lang-option').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const lang = btn.dataset.lang;
-    if (lang && lang !== currentLang) setLanguage(lang);
-  });
-});
-
-// =========================================================
-// App state
-// =========================================================
-const HF_MODEL_BASE = 'https://huggingface.co/xezpeleta/parakeet-tdt-0.6b-v3-basque-sherpa-onnx/resolve/main';
-const HF_WASM_BASE  = 'https://huggingface.co/spaces/k2-fsa/web-assembly-asr-sherpa-onnx-en/resolve/main';
-
-const MODEL_FILES = [
-  { name: 'encoder.int8.onnx', size: 652 * 1024 * 1024,  wasmPath: '/encoder.int8.onnx'  },
-  { name: 'decoder.int8.onnx', size: 11.8 * 1024 * 1024, wasmPath: '/decoder.int8.onnx' },
-  { name: 'joiner.int8.onnx',  size: 6.4 * 1024 * 1024,  wasmPath: '/joiner.int8.onnx'  },
-  { name: 'tokens.txt',        size: 94 * 1024,           wasmPath: '/tokens.txt'         },
-];
-
-let wasmReady     = false;   // WASM runtime initialized
-let modelReady    = false;   // model files written to WASM FS
-let recognizer    = null;    // OfflineRecognizer instance
-let audioBlob     = null;    // audio to transcribe
-let micStream     = null;
-let mediaRecorder = null;
-let isRecording   = false;
-let micChunks     = [];
-
-// =========================================================
-// Status helpers
-// =========================================================
-function setStatus(labelKey, detailKey, pct) {
-  const t = translations[currentLang];
-  document.getElementById('statusLabel').textContent  = t[labelKey]  || labelKey;
-  document.getElementById('statusDetail').textContent = t[detailKey] || detailKey;
-  if (pct !== undefined) setProgress(pct);
-}
-
-function setProgress(pct) {
-  document.getElementById('progressBar').style.width = pct + '%';
-}
-
-function setRenderState(state) {
-  const el = document.getElementById('renderState');
-  const t = translations[currentLang];
-  el.className = 'render-badge';
-  if (state === 'ready') {
-    el.textContent = t.renderReady;
-    el.classList.add('ready');
-  } else if (state === 'error') {
-    el.textContent = t.renderError;
-    el.classList.add('error');
-  } else {
-    el.textContent = t.renderNone;
+// ═══════════════════════════════════════════════════════════
+// Transcription
+// ═══════════════════════════════════════════════════════════
+window.onTranscribe = async function() {
+  const btn  = document.getElementById('transcribeBtn');
+  const icon = document.getElementById('transcribeIcon');
+  const area = document.getElementById('transcriptArea');
+  btn.disabled = true;
+  icon.textContent = '⏳';
+  icon.classList.add('spin');
+  area.value = '';
+  document.getElementById('copyBtn').disabled = true;
+  try {
+    const text = await window.parakeetWasm.transcribe();
+    area.value = text || '(no speech detected)';
+    document.getElementById('copyBtn').disabled = !text;
+  } catch (err) {
+    console.error('[app] transcribe error:', err);
+    area.value = '❌ ' + (err?.message || String(err));
+  } finally {
+    btn.disabled = false;
+    icon.textContent = '📝';
+    icon.classList.remove('spin');
   }
-}
+};
 
-function setModelStatus(state) {
-  const el = document.getElementById('modelStatus');
-  const t = translations[currentLang];
-  el.className = 'render-badge';
-  if (state === 'ready') {
-    el.textContent = t.modelLoaded;
-    el.classList.add('ready');
-  } else if (state === 'loading') {
-    el.textContent = t.modelLoading;
-  } else {
-    el.textContent = t.modelNotLoaded;
+window.onClearTranscript = function() {
+  document.getElementById('transcriptArea').value = '';
+  document.getElementById('copyBtn').disabled = true;
+};
+
+window.onCopy = async function() {
+  const text = document.getElementById('transcriptArea').value;
+  if (!text) return;
+  await navigator.clipboard.writeText(text);
+  const btn = document.getElementById('copyBtn');
+  const saved = btn.innerHTML;
+  btn.textContent = '✓';
+  setTimeout(() => { btn.innerHTML = saved; }, 1200);
+};
+
+// ═══════════════════════════════════════════════════════════
+// Clear cache
+// ═══════════════════════════════════════════════════════════
+window.onClearCache = async function() {
+  if (!confirm('Clear cached model files?')) return;
+  try {
+    await window.parakeetWasm.clear_cache();
+  } catch (err) {
+    console.error('[app] clear cache error:', err);
   }
-}
+};
 
-// =========================================================
-// Service worker registration (for COOP/COEP headers)
-// =========================================================
-async function registerServiceWorker() {
+// ═══════════════════════════════════════════════════════════
+// Service worker (COOP/COEP headers → crossOriginIsolated)
+// ═══════════════════════════════════════════════════════════
+async function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   try {
     const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
-    // If a new SW activated, reload to apply headers
+    // If SW just became active for the first time, reload to apply COOP/COEP
     if (reg.active && !navigator.serviceWorker.controller) {
       window.location.reload();
     }
   } catch (err) {
-    console.warn('SW registration failed:', err);
+    console.warn('[sw] registration failed:', err);
   }
 }
 
-// =========================================================
-// WASM loading – skip the bundled .data file
-// =========================================================
-// Emscripten uses XMLHttpRequest (not fetch) to download the .data file.
-// The official way to skip it is to set Module.getPreloadedPackage which
-// Emscripten checks before making the XHR. Returning an empty ArrayBuffer
-// causes Emscripten to write 0-byte stubs for the English model files –
-// that is fine because our Basque model files use different paths.
-function setupGetPreloadedPackage() {
-  // This must be set BEFORE window.Module is defined (called first in init)
-  // so we store it – then loadWasm() adds it to the Module config.
-  window._emscriptenPreloadedPackage = () => {
-    console.log('[ASR] getPreloadedPackage called → returning empty buffer (skip English model)');
-    return new ArrayBuffer(0);
-  };
-}
+// ═══════════════════════════════════════════════════════════
+// Boot: initialise Rust WASM then call our init()
+// ═══════════════════════════════════════════════════════════
+import init, * as parakeetWasm from './pkg/parakeet_wasm.js';
 
-function loadWasm() {
-  return new Promise((resolve, reject) => {
-    // Configure Module BEFORE the script loads
-    window.Module = {
-      locateFile: (path) => {
-        return HF_WASM_BASE + '/' + path;
-      },
-      // Return an empty ArrayBuffer so Emscripten skips the XHR for the
-      // bundled 191 MB English model .data file (we provide our own model).
-      getPreloadedPackage: window._emscriptenPreloadedPackage,
-      setStatus: (status) => {
-        console.log('[WASM]', status);
-      },
-      onRuntimeInitialized: () => {
-        console.log('[WASM] Runtime initialized');
-        wasmReady = true;
-        resolve();
-      },
-      // Suppress errors from the empty .data package
-      printErr: (msg) => {
-        if (msg.includes('abort') || msg.includes('.data') || msg.includes('Assertion')) {
-          console.warn('[WASM]', msg);
-        } else {
-          console.error('[WASM]', msg);
-        }
-      },
-    };
-
-    // Load high-level API then WASM engine
-    const apiScript = document.createElement('script');
-    apiScript.src = HF_WASM_BASE + '/sherpa-onnx-asr.js';
-    apiScript.onerror = () => reject(new Error('Failed to load sherpa-onnx-asr.js'));
-    apiScript.onload = () => {
-      const wasmScript = document.createElement('script');
-      wasmScript.src = HF_WASM_BASE + '/sherpa-onnx-wasm-main-asr.js';
-      wasmScript.onerror = () => reject(new Error('Failed to load wasm-main-asr.js'));
-      document.head.appendChild(wasmScript);
-    };
-    document.head.appendChild(apiScript);
-  });
-}
-
-// =========================================================
-// Model download
-// =========================================================
-async function downloadFileWithProgress(url, fileIndex) {
-  const resp = await fetch(url, { mode: 'cors' });
-  if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${url}`);
-
-  const total = parseInt(resp.headers.get('Content-Length') || '0', 10);
-  const reader = resp.body.getReader();
-  const chunks = [];
-  let loaded = 0;
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    loaded += value.length;
-    if (total > 0) {
-      const filePct = Math.round(loaded / total * 100);
-      document.getElementById('downloadFileStatus').textContent =
-        MODEL_FILES[fileIndex].name + ' – ' + filePct + '%';
-    }
-  }
-
-  const buf = new Uint8Array(loaded);
-  let offset = 0;
-  for (const chunk of chunks) {
-    buf.set(chunk, offset);
-    offset += chunk.length;
-  }
-  return buf;
-}
-
-// =========================================================
-// OPFS (Origin Private File System) model caching
-// =========================================================
-const OPFS_DIR = 'parakeet-basque-asr';
-
-async function opfsGetDir() {
-  const root = await navigator.storage.getDirectory();
-  return root.getDirectoryHandle(OPFS_DIR, { create: true });
-}
-
-async function opfsRead(filename) {
+(async () => {
+  setLanguage(window.currentLang);
+  await registerSW();
   try {
-    const dir  = await opfsGetDir();
-    const fh   = await dir.getFileHandle(filename);
-    const file = await fh.getFile();
-    const buf  = await file.arrayBuffer();
-    return new Uint8Array(buf);
-  } catch {
-    return null; // file not cached
-  }
-}
-
-async function opfsWrite(filename, data) {
-  const dir      = await opfsGetDir();
-  const fh       = await dir.getFileHandle(filename, { create: true });
-  const writable = await fh.createWritable();
-  await writable.write(data);
-  await writable.close();
-}
-
-async function opfsHasAllFiles() {
-  for (const mf of MODEL_FILES) {
-    const data = await opfsRead(mf.name);
-    if (!data) return false;
-  }
-  return true;
-}
-
-async function clearCache() {
-  if (!confirm('Clear cached model files?')) return;
-  try {
-    const root = await navigator.storage.getDirectory();
-    await root.removeEntry(OPFS_DIR, { recursive: true });
-    for (let i = 0; i < MODEL_FILES.length; i++) {
-      document.getElementById('file' + i).textContent = '○';
-      document.getElementById('file' + i).className = 'pending';
-    }
-    document.getElementById('clearCacheBtn').classList.add('hidden');
-    document.getElementById('downloadBtn').classList.remove('hidden');
-    document.getElementById('downloadBtn').disabled = false;
-    document.getElementById('downloadLabel').textContent = translations[currentLang].downloadBtn;
-    console.log('[Cache] Cleared');
+    await init();                          // loads parakeet_wasm_bg.wasm
+    window.parakeetWasm = parakeetWasm;    // expose for bridge.js callbacks
+    await parakeetWasm.init();             // Rust: load sherpa-onnx WASM + check cache
   } catch (err) {
-    console.error('[Cache] Clear error:', err);
+    console.error('[boot]', err);
+    document.getElementById('loadingOverlay').innerHTML =
+      `<p style="color:#f87171">❌ Init failed: ${err?.message || err}</p>`;
   }
-}
+})();
 
-async function checkCache() {
-  if (!('storage' in navigator && 'getDirectory' in navigator.storage)) return false;
-  return opfsHasAllFiles();
-}
-
-async function downloadModel() {
-  if (modelReady) return;
-
-  const btn = document.getElementById('downloadBtn');
-  btn.disabled = true;
-  document.getElementById('downloadIcon').textContent = '⏳';
-  setModelStatus('loading');
-  setStatus('statusDownloading', 'statusDownloadingDetail', 0);
-
-  try {
-    const mod = window.Module;
-    // Emscripten may expose FS on Module.FS or as a global window.FS
-    const fs = mod.FS || window.FS;
-    if (!fs) throw new Error('WASM FS not available – onRuntimeInitialized may not have fired yet');
-    const useOpfs = 'storage' in navigator && 'getDirectory' in navigator.storage;
-    let totalLoaded = 0;
-    const totalSize = MODEL_FILES.reduce((s, f) => s + f.size, 0);
-
-    for (let i = 0; i < MODEL_FILES.length; i++) {
-      const mf = MODEL_FILES[i];
-      const fileEl = document.getElementById('file' + i);
-      fileEl.textContent = '⏳';
-
-      let data = null;
-
-      // Try OPFS cache first
-      if (useOpfs) {
-        data = await opfsRead(mf.name);
-        if (data) {
-          console.log('[Model] Cache hit:', mf.name, '(' + data.length + ' bytes)');
-          document.getElementById('downloadFileStatus').textContent =
-            '📦 ' + mf.name + ' (cache)';
-        }
-      }
-
-      // Download if not cached
-      if (!data) {
-        const url = HF_MODEL_BASE + '/' + mf.name;
-        console.log('[Model] Downloading', mf.name);
-        data = await downloadFileWithProgress(url, i);
-
-        // Save to OPFS cache
-        if (useOpfs) {
-          try {
-            await opfsWrite(mf.name, data);
-            console.log('[Model] Saved to OPFS cache:', mf.name);
-          } catch (cacheErr) {
-            console.warn('[Cache] Write failed:', cacheErr);
-          }
-        }
-      }
-
-      // Write to WASM FS (Module.FS is Emscripten's virtual filesystem)
-      fs.writeFile(mf.wasmPath, data);
-      console.log('[Model] Written to WASM FS:', mf.wasmPath);
-
-      fileEl.textContent = '✓';
-      fileEl.className = 'check';
-      totalLoaded += mf.size;
-      setProgress(Math.round(totalLoaded / totalSize * 70) + 10);
-    }
-
-    // Create recognizer
-    document.getElementById('downloadFileStatus').textContent = '';
-    setProgress(85);
-    setStatus('statusLoading', 'statusDownloadingDetail', 85);
-
-    recognizer = new OfflineRecognizer({
-      modelConfig: {
-        transducer: {
-          encoder: '/encoder.int8.onnx',
-          decoder: '/decoder.int8.onnx',
-          joiner:  '/joiner.int8.onnx',
-        },
-        tokens:      '/tokens.txt',
-        numThreads:  2,
-        provider:    'cpu',
-        debug:       0,
-        modelType:   '',
-      },
-      decodingMethod: 'greedy_search',
-    }, window.Module);
-
-    modelReady = true;
-    setProgress(100);
-    setStatus('statusIdle', 'statusReady', 100);
-    setModelStatus('ready');
-    document.getElementById('downloadBtn').classList.add('hidden');
-    document.getElementById('clearCacheBtn').classList.remove('hidden');
-    document.getElementById('transcribeBtn').disabled = false;
-    document.getElementById('micBtn').disabled = false;
-    console.log('[Model] Recognizer created successfully');
-
-  } catch (err) {
-    console.error('[Model] Download/init error:', err);
-    setStatus('statusError', err.message, 0);
-    setModelStatus('idle');
-    btn.disabled = false;
-    document.getElementById('downloadIcon').textContent = '⬇️';
-  }
-}
-
-// =========================================================
-// Audio file handling
-// =========================================================
-function humanSize(bytes) {
-  if (bytes < 1024)         return bytes + ' B';
-  if (bytes < 1024 * 1024)  return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-}
-
-function setAudioFile(file) {
-  audioBlob = file;
-  document.getElementById('dropZone').classList.add('hidden');
-  const fi = document.getElementById('fileInfo');
-  fi.classList.remove('hidden');
-  document.getElementById('fileName').textContent = file.name || 'recorded audio';
-  document.getElementById('fileSize').textContent = humanSize(file.size);
-  if (modelReady) {
-    document.getElementById('transcribeBtn').disabled = false;
-  }
-}
-
-function clearFile() {
-  audioBlob = null;
-  document.getElementById('fileInfo').classList.add('hidden');
-  document.getElementById('dropZone').classList.remove('hidden');
-  if (!modelReady) document.getElementById('transcribeBtn').disabled = true;
-}
-
-// Drop zone
-const dropZone = document.getElementById('dropZone');
-dropZone.addEventListener('click', () => document.getElementById('hidden-file-input').click());
-dropZone.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') document.getElementById('hidden-file-input').click();
-});
-dropZone.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  dropZone.classList.add('drag-over');
-});
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', (e) => {
-  e.preventDefault();
-  dropZone.classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file) setAudioFile(file);
-});
-
-document.getElementById('hidden-file-input').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (file) setAudioFile(file);
-});
-
-// =========================================================
-// Microphone recording
-// =========================================================
-async function toggleRecording() {
-  if (!isRecording) {
-    await startRecording();
-  } else {
-    stopRecording();
-  }
-}
-
-async function startRecording() {
-  try {
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch (err) {
-    alert('Microphone access denied: ' + err.message);
-    return;
-  }
-
-  micChunks = [];
-  mediaRecorder = new MediaRecorder(micStream);
-  mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) micChunks.push(e.data); };
-  mediaRecorder.onstop = onRecordingStop;
-  mediaRecorder.start();
-
-  isRecording = true;
-  const btn = document.getElementById('micBtn');
-  btn.textContent = '⏹';
-  btn.classList.add('recording');
-  document.getElementById('micStatus').textContent = translations[currentLang].micRecording;
-}
-
-function stopRecording() {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-  }
-  if (micStream) {
-    micStream.getTracks().forEach((t) => t.stop());
-    micStream = null;
-  }
-  isRecording = false;
-  const btn = document.getElementById('micBtn');
-  btn.textContent = '🎙️';
-  btn.classList.remove('recording');
-}
-
-function onRecordingStop() {
-  const blob = new Blob(micChunks, { type: 'audio/webm' });
-  const url  = URL.createObjectURL(blob);
-  const player = document.getElementById('micPlayer');
-  player.src = url;
-  player.classList.remove('hidden');
-  document.getElementById('micStatus').textContent = translations[currentLang].micDone;
-
-  // Use this as the audio source
-  blob.name = 'recording.webm';
-  setAudioFile(blob);
-}
-
-// =========================================================
-// Transcription
-// =========================================================
-async function transcribe() {
-  if (!recognizer || !audioBlob) return;
-
-  const btn = document.getElementById('transcribeBtn');
-  btn.disabled = true;
-  document.getElementById('transcribeIcon').textContent = '⏳';
-  setStatus('statusTranscribing', 'statusTranscribing', 0);
-  setRenderState('idle');
-  document.getElementById('transcriptArea').value = '';
-  document.getElementById('copyBtn').disabled = true;
-
-  try {
-    // Decode audio using browser's AudioContext
-    setProgress(10);
-    const arrayBuffer = await audioBlob.arrayBuffer();
-    const audioCtx    = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-    const decoded     = await audioCtx.decodeAudioData(arrayBuffer);
-    await audioCtx.close();
-
-    const targetSR   = 16000;
-    let samples;
-    if (decoded.sampleRate !== targetSR) {
-      // Resample
-      const offCtx   = new OfflineAudioContext(1, Math.round(decoded.duration * targetSR), targetSR);
-      const src       = offCtx.createBufferSource();
-      src.buffer      = decoded;
-      src.connect(offCtx.destination);
-      src.start();
-      const resampled = await offCtx.startRendering();
-      samples         = resampled.getChannelData(0);
-    } else {
-      samples = decoded.getChannelData(0);
-    }
-
-    setProgress(30);
-
-    // Chunk audio into segments of max 30 seconds for memory efficiency
-    const CHUNK_SECS   = 30;
-    const chunkSize    = CHUNK_SECS * targetSR;
-    const totalChunks  = Math.ceil(samples.length / chunkSize);
-    const results      = [];
-
-    for (let ci = 0; ci < totalChunks; ci++) {
-      const start  = ci * chunkSize;
-      const end    = Math.min(start + chunkSize, samples.length);
-      const chunk  = samples.slice(start, end);
-
-      const stream = recognizer.createStream();
-      stream.acceptWaveform(targetSR, chunk);
-      recognizer.decode(stream);
-      const result = recognizer.getResult(stream);
-      results.push(result.text || result.tokens || '');
-      stream.free();
-
-      setProgress(30 + Math.round((ci + 1) / totalChunks * 65));
-    }
-
-    const transcript = results.join(' ').trim();
-    document.getElementById('transcriptArea').value = transcript || '(no text recognized)';
-    document.getElementById('copyBtn').disabled = false;
-    setProgress(100);
-    setStatus('statusIdle', 'statusReady', 100);
-    setRenderState('ready');
-
-  } catch (err) {
-    console.error('[Transcribe]', err);
-    document.getElementById('transcriptArea').value = 'Error: ' + err.message;
-    setStatus('statusError', err.message, 0);
-    setRenderState('error');
-  } finally {
-    btn.disabled = false;
-    document.getElementById('transcribeIcon').textContent = '📝';
-  }
-}
-
-function clearTranscript() {
-  document.getElementById('transcriptArea').value = '';
-  document.getElementById('copyBtn').disabled = true;
-  setRenderState('idle');
-}
-
-async function copyTranscript() {
-  const text = document.getElementById('transcriptArea').value;
-  if (!text) return;
-  try {
-    await navigator.clipboard.writeText(text);
-    const btn = document.getElementById('copyBtn');
-    const orig = btn.textContent;
-    btn.textContent = '✓';
-    setTimeout(() => { btn.textContent = translations[currentLang].copyBtn; }, 1200);
-  } catch {}
-}
-
-// =========================================================
-// Init
-// =========================================================
-async function init() {
-  // Check WebAssembly support
-  if (typeof WebAssembly === 'undefined') {
-    document.getElementById('noWasmBanner').classList.remove('hidden');
-    return;
-  }
-
-  // Register service worker
-  await registerServiceWorker();
-
-  // Pre-configure the Emscripten getPreloadedPackage hook so loadWasm() can
-  // attach it to Module before the WASM script loads.
-  setupGetPreloadedPackage();
-
-  setStatus('statusLoading', 'statusDownloadingDetail', 5);
-
-  try {
-    await loadWasm();
-
-    // Check OPFS cache and update button label
-    const cached = await checkCache();
-    const downloadLabel = document.getElementById('downloadLabel');
-    if (cached) {
-      downloadLabel.textContent = translations[currentLang].downloadBtnCached;
-      // Show cache clear button even before loading
-      document.getElementById('clearCacheBtn').classList.remove('hidden');
-    }
-
-    setStatus('statusIdle', 'statusReady', 10);
-    document.getElementById('downloadBtn').disabled = false;
-    console.log('[Init] WASM ready, model download available, cache:', cached);
-  } catch (err) {
-    console.error('[Init] WASM load error:', err);
-    setStatus('statusError', err.message, 0);
-  }
-}
-
-// Set language before DOMContentLoaded content is rendered
-currentLang = detectLanguage();
-setLanguage(currentLang, false);
-
-// Start app
-init();
 </script>
 </body>
 </html>

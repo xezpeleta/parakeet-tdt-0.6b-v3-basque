@@ -1,0 +1,29 @@
+FROM rust:1.85-slim
+
+# Install minimal build dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl ca-certificates pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install wasm-pack
+RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+# Add wasm32 target
+RUN rustup target add wasm32-unknown-unknown
+
+WORKDIR /workspace
+
+# Pre-fetch dependencies by building a stub (speeds up rebuilds)
+COPY wasm-asr/Cargo.toml ./Cargo.toml
+RUN mkdir -p src && \
+    printf '#[allow(unused)]\npub fn stub() {}\n' > src/lib.rs && \
+    cargo fetch && \
+    rm -rf src
+
+# Build the real crate
+COPY wasm-asr/src ./src
+RUN wasm-pack build \
+    --target web \
+    --release \
+    --out-dir /output \
+    --no-typescript
