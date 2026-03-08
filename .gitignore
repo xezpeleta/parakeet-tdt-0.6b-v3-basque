@@ -9,12 +9,6 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Personal notes (not useful for public repo)
-questions.md
-
-# Internal planning docs
-docs/
-
 # Models and data (too large for git)
 models/
 data/
