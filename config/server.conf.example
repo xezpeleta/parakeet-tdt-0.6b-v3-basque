@@ -1,0 +1,6 @@
+[server]
+host = YOUR_SERVER_IP
+port = 22
+username = YOUR_USERNAME
+protocol = ssh
+gpu = true

@@ -1,0 +1,30 @@
+# Server config (contains private IP/credentials)
+config/server.conf
+
+# Secrets
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Personal notes (not useful for public repo)
+questions.md
+
+# Internal planning docs
+docs/
+
+# Models and data (too large for git)
+models/
+data/
+*.nemo
+*.onnx
+*.pt
+*.ckpt
+
+# Logs and results
+logs/
+results/
+
+.env
