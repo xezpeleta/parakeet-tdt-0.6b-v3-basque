@@ -9,8 +9,8 @@ use wasm_bindgen_futures::JsFuture;
 
 const HF_MODEL_BASE: &str =
     "https://huggingface.co/xezpeleta/parakeet-tdt-0.6b-v3-basque-sherpa-onnx/resolve/main";
-const HF_WASM_BASE: &str =
-    "https://huggingface.co/spaces/k2-fsa/web-assembly-asr-sherpa-onnx-en/resolve/main";
+// Sherpa-onnx runtime bundled locally under docs/sherpa-wasm/ (v1.12.28, online/streaming WASM)
+const SHERPA_WASM_BASE: &str = "./sherpa-wasm";
 const OPFS_DIR: &str = "parakeet-basque-asr";
 
 struct ModelFile {
@@ -96,9 +96,9 @@ thread_local! {
 pub async fn init() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
 
-    // Load sherpa-onnx WASM runtime
+    // Load sherpa-onnx WASM runtime (bundled locally in docs/sherpa-wasm/)
     let args = Array::new();
-    args.push(&JsValue::from_str(HF_WASM_BASE));
+    args.push(&JsValue::from_str(SHERPA_WASM_BASE));
     bridge_async("jsBridgeLoadWasm", &args).await?;
 
     // Check whether all model files are already in OPFS

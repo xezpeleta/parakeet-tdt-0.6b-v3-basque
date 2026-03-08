@@ -40,7 +40,11 @@ window.jsBridgeLoadWasm = function(baseUrl) {
 
       onRuntimeInitialized: function() {
         console.log('[bridge] WASM runtime ready');
-        _sherpaModule = window.Module;
+        // Use `this` — Emscripten calls onRuntimeInitialized() bound to the fully-
+        // initialized Module object (with all _SherpaOnnx* exports).
+        // window.Module is still the config stub we created before the script loaded.
+        _sherpaModule = this;
+        window.SherpaModule = this;  // also expose for FS access in jsBridgeWasmFsWrite
         resolve();
       },
 
@@ -72,18 +76,26 @@ window.jsBridgeLoadWasm = function(baseUrl) {
    2. Emscripten virtual filesystem write
    ============================================================ */
 window.jsBridgeWasmFsWrite = function(path, uint8array) {
-  const fs = window.Module.FS || window.FS;
+  const fs = (_sherpaModule && _sherpaModule.FS)
+    || window.SherpaModule?.FS
+    || window.Module?.FS
+    || window.FS;
   if (!fs) throw new Error('WASM FS not available');
   fs.writeFile(path, uint8array);
   console.log('[bridge] FS.writeFile', path, uint8array.byteLength, 'bytes');
 };
 
 /* ============================================================
-   3. Create OfflineRecognizer
+   3. Create OnlineRecognizer (streaming transducer)
    ============================================================ */
 window.jsBridgeCreateRecognizer = function() {
-  if (!_sherpaModule) throw new Error('Sherpa WASM not initialised');
-  _recognizer = new OfflineRecognizer({
+  // Use window.SherpaModule (set to `this` in onRuntimeInitialized, i.e. the
+  // fully-initialized Emscripten module with all _SherpaOnnx* exports bound).
+  const mod = window.SherpaModule || _sherpaModule;
+  if (!mod) throw new Error('Sherpa WASM not initialised');
+  const sherpaExports = Object.keys(mod).filter(k => k.startsWith('_Sherpa'));
+  console.log('[bridge] Sherpa exports:', sherpaExports);
+  _recognizer = new OnlineRecognizer({
     modelConfig: {
       transducer: {
         encoder: '/encoder.int8.onnx',
@@ -97,8 +109,11 @@ window.jsBridgeCreateRecognizer = function() {
       modelType:  '',
     },
     decodingMethod: 'greedy_search',
-  }, _sherpaModule);
-  console.log('[bridge] OfflineRecognizer created');
+    maxActivePaths: 4,
+    enableEndpoint:  0,  // disabled — we feed all audio at once
+  }, mod);
+  _sherpaModule = mod;
+  console.log('[bridge] OnlineRecognizer created');
 };
 
 /* ============================================================
@@ -135,28 +150,31 @@ window.jsBridgeDecodeAudio = async function(uint8array) {
 };
 
 /* ============================================================
-   5. Run ASR inference (chunks audio into 30-second segments)
+   5. Run ASR inference using the online/streaming API
+   Feed all audio at once → inputFinished → decode until ready
    ============================================================ */
 window.jsBridgeRunInference = function(samplesFloat32) {
   if (!_recognizer) throw new Error('Recognizer not created');
 
-  const TARGET_SR  = 16000;
-  const CHUNK_SECS = 30;
-  const chunkSize  = CHUNK_SECS * TARGET_SR;
-  const total      = samplesFloat32.length;
-  const results    = [];
+  const TARGET_SR = 16000;
+  const stream    = _recognizer.createStream();
 
-  for (let offset = 0; offset < total; offset += chunkSize) {
-    const chunk  = samplesFloat32.subarray(offset, Math.min(offset + chunkSize, total));
-    const stream = _recognizer.createStream();
-    stream.acceptWaveform(TARGET_SR, chunk);
+  // Feed all samples at once (batch mode with streaming API)
+  stream.acceptWaveform(TARGET_SR, samplesFloat32);
+  stream.inputFinished();
+
+  // Run decode iterations until the model has consumed all input
+  while (!_recognizer.isReady(stream)) {
     _recognizer.decode(stream);
-    const res = _recognizer.getResult(stream);
-    results.push(res.text || '');
-    stream.free();
   }
+  _recognizer.decode(stream);
 
-  return results.join(' ').trim();
+  // getResult returns a JSON object: { text, tokens, timestamps }
+  const result = _recognizer.getResult(stream);
+  const text   = (result.text || '').trim();
+  stream.free();
+  console.log('[bridge] inference result:', text);
+  return text;
 };
 
 /* ============================================================
