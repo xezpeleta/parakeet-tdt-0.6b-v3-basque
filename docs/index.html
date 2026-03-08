@@ -1106,25 +1106,19 @@ async function registerServiceWorker() {
 }
 
 // =========================================================
-// WASM loading – intercept the bundled .data to return empty
+// WASM loading – skip the bundled .data file
 // =========================================================
-function patchFetchForEmptyData() {
-  const origFetch = window.fetch.bind(window);
-  window.fetch = function(input, init) {
-    const url = typeof input === 'string'
-      ? input
-      : (input instanceof URL ? input.href : (input.url || ''));
-    if (url.includes('sherpa-onnx-wasm-main-asr.data')) {
-      console.log('[ASR] Intercepting .data file → empty (model files loaded separately)');
-      return Promise.resolve(new Response(new Uint8Array(0), {
-        status: 200,
-        headers: {
-          'Content-Length': '0',
-          'Content-Type': 'application/octet-stream',
-        },
-      }));
-    }
-    return origFetch(input, init);
+// Emscripten uses XMLHttpRequest (not fetch) to download the .data file.
+// The official way to skip it is to set Module.getPreloadedPackage which
+// Emscripten checks before making the XHR. Returning an empty ArrayBuffer
+// causes Emscripten to write 0-byte stubs for the English model files –
+// that is fine because our Basque model files use different paths.
+function setupGetPreloadedPackage() {
+  // This must be set BEFORE window.Module is defined (called first in init)
+  // so we store it – then loadWasm() adds it to the Module config.
+  window._emscriptenPreloadedPackage = () => {
+    console.log('[ASR] getPreloadedPackage called → returning empty buffer (skip English model)');
+    return new ArrayBuffer(0);
   };
 }
 
@@ -1135,27 +1129,20 @@ function loadWasm() {
       locateFile: (path) => {
         return HF_WASM_BASE + '/' + path;
       },
+      // Return an empty ArrayBuffer so Emscripten skips the XHR for the
+      // bundled 191 MB English model .data file (we provide our own model).
+      getPreloadedPackage: window._emscriptenPreloadedPackage,
       setStatus: (status) => {
         console.log('[WASM]', status);
-        if (status && status.startsWith('Downloading data')) {
-          const m = status.match(/\((\d+)\/(\d+)\)/);
-          if (m) {
-            const pct = Math.round(parseInt(m[1]) / parseInt(m[2]) * 30);
-            setProgress(pct);
-          }
-        }
       },
-      onRuntimeInitialized: function() {
+      onRuntimeInitialized: () => {
         console.log('[WASM] Runtime initialized');
-        // Capture the actual initialized Emscripten Module (Emscripten may
-        // reassign its local var, so `this` is the only reliable reference)
-        window.SherpaModule = this;
         wasmReady = true;
         resolve();
       },
-      // Suppress the abort on missing data file – we provide files ourselves
+      // Suppress errors from the empty .data package
       printErr: (msg) => {
-        if (msg.includes('abort') || msg.includes('.data')) {
+        if (msg.includes('abort') || msg.includes('.data') || msg.includes('Assertion')) {
           console.warn('[WASM]', msg);
         } else {
           console.error('[WASM]', msg);
@@ -1282,8 +1269,8 @@ async function downloadModel() {
   setStatus('statusDownloading', 'statusDownloadingDetail', 0);
 
   try {
-    const mod = window.SherpaModule || window.Module;
-    const fs = mod.FS || window.FS;
+    const mod = window.Module;
+    const fs = mod.FS;
     const useOpfs = 'storage' in navigator && 'getDirectory' in navigator.storage;
     let totalLoaded = 0;
     const totalSize = MODEL_FILES.reduce((s, f) => s + f.size, 0);
@@ -1351,7 +1338,7 @@ async function downloadModel() {
         modelType:   '',
       },
       decodingMethod: 'greedy_search',
-    }, mod);
+    }, window.Module);
 
     modelReady = true;
     setProgress(100);
@@ -1591,8 +1578,9 @@ async function init() {
   // Register service worker
   await registerServiceWorker();
 
-  // Patch fetch to intercept bundled .data file
-  patchFetchForEmptyData();
+  // Pre-configure the Emscripten getPreloadedPackage hook so loadWasm() can
+  // attach it to Module before the WASM script loads.
+  setupGetPreloadedPackage();
 
   setStatus('statusLoading', 'statusDownloadingDetail', 5);
 
