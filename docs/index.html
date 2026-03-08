@@ -1270,7 +1270,9 @@ async function downloadModel() {
 
   try {
     const mod = window.Module;
-    const fs = mod.FS;
+    // Emscripten may expose FS on Module.FS or as a global window.FS
+    const fs = mod.FS || window.FS;
+    if (!fs) throw new Error('WASM FS not available – onRuntimeInitialized may not have fired yet');
     const useOpfs = 'storage' in navigator && 'getDirectory' in navigator.storage;
     let totalLoaded = 0;
     const totalSize = MODEL_FILES.reduce((s, f) => s + f.size, 0);
